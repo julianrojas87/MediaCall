@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project default="all" name="MediaCall">
+    <target name="init">
+        <path id="slee">
+            <pathelement location="lib/slee.jar"/>
+        </path>
+        <taskdef classname="org.mobicents.eclipslee.ant.SbbJar"
+            classpath="lib/slee-tasks.jar" name="sbbjar"/>
+        <taskdef classname="org.mobicents.eclipslee.ant.EventJar"
+            classpath="lib/slee-tasks.jar" name="eventjar"/>
+        <taskdef classname="org.mobicents.eclipslee.ant.ProfileSpecJar"
+            classpath="lib/slee-tasks.jar" name="profilespecjar"/>
+        <taskdef classname="org.mobicents.eclipslee.ant.DeployableJar"
+            classpath="lib/slee-tasks.jar" name="deployablejar"/>
+        <taskdef
+            classname="org.mobicents.eclipslee.ant.ResourceAdaptorTypeJar"
+            classpath="lib/slee-tasks.jar" name="resourceadaptortypejar"/>
+        <taskdef
+            classname="org.mobicents.eclipslee.ant.ResourceAdaptorJar"
+            classpath="lib/slee-tasks.jar" name="resourceadaptorjar"/>
+        <path id="ExternalComponents">
+            <pathelement location="lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/jain-sip-api-1.2.jar"/>
+            <pathelement location="lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/jain-sip-ri-1.2.170.jar"/>
+            <pathelement location="lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-library-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-ra-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-ratype-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/jain-mgcp-ri-1.0.jar"/>
+            <pathelement location="lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-events-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-impl-2.0.1.GA.jar"/>
+            <pathelement location="lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-library-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-ra-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-ratype-2.7.0.FINAL.jar"/>
+            <pathelement location="lib/DU/http-client-ra-DU-2.5.0.FINAL-Eclipslee.jar/jars/http-client-events-2.5.0.FINAL.jar"/>
+            <pathelement location="lib/DU/http-client-ra-DU-2.5.0.FINAL-Eclipslee.jar/jars/http-client-library-2.5.0.FINAL.jar"/>
+            <pathelement location="lib/DU/http-client-ra-DU-2.5.0.FINAL-Eclipslee.jar/jars/http-client-ra-2.5.0.FINAL.jar"/>
+            <pathelement location="lib/DU/http-client-ra-DU-2.5.0.FINAL-Eclipslee.jar/jars/http-client-ratype-2.5.0.FINAL.jar"/>
+            <pathelement location="lib/DU/http-client-ra-DU-2.5.0.FINAL-Eclipslee.jar/jars/httpclient-4.1.2.jar"/>
+            <pathelement location="lib/DU/http-client-ra-DU-2.5.0.FINAL-Eclipslee.jar/jars/httpcore-4.1.3.jar"/>
+        </path>
+        <path id="path-Media-sbb">
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/mgcp-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/mgcp-events-2.7.0.FINAL.jar"/>
+        </path>
+        <path id="path-CallManager-sbb">
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/jars/StartMediaCall-event.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/jars/EndMediaCall-event.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+            <pathelement location="/home/julian/Telcomp-Workspace/MediaCall/lib/DU/sip11-ra-DU-2.7.0.FINAL-Eclipslee.jar/jars/sip11-events-2.7.0.FINAL.jar"/>
+        </path>
+    </target>
+    <target depends="init" name="all">
+        <ant target="build-StartMediaCallTelcoService-event"/>
+        <ant target="build-EndMediaCallTelcoService-event"/>
+        <ant target="build-Media-sbb"/>
+        <ant target="build-TTS-sbb"/>
+        <ant target="build-CallManager-sbb"/>
+        <ant target="build-mediaCall-DU"/>
+    </target>
+    <target depends="init" name="clean">
+        <ant target="clean-StartMediaCallTelcoService-event"/>
+        <ant target="clean-EndMediaCallTelcoService-event"/>
+        <ant target="clean-Media-sbb"/>
+        <ant target="clean-TTS-sbb"/>
+        <ant target="clean-CallManager-sbb"/>
+        <ant target="clean-mediaCall-DU"/>
+    </target>
+    <target depends="init" name="build-StartMediaCallTelcoService-event">
+        <mkdir dir="classes/StartMediaCallTelcoService-event"/>
+        <mkdir dir="jars/"/>
+        <javac destdir="classes/StartMediaCallTelcoService-event"
+            includes="org/telcomp/events/StartMediaCallTelcoServiceEvent.java" srcdir="src">
+            <classpath>
+                <path refid="slee"/>
+                <path refid="ExternalComponents"/>
+            </classpath>
+        </javac>
+        <eventjar classpath="classes/StartMediaCallTelcoService-event"
+            destfile="jars/StartMediaCallTelcoService-event.jar" eventjarxml="src/org/telcomp/events/StartMediaCallTelcoService-event-jar.xml"/>
+    </target>
+    <target name="clean-StartMediaCallTelcoService-event">
+        <delete file="jars/StartMediaCallTelcoService-event.jar"/>
+        <delete dir="classes/StartMediaCallTelcoService-event"/>
+    </target>
+    <target depends="init" name="build-EndMediaCallTelcoService-event">
+        <mkdir dir="classes/EndMediaCallTelcoService-event"/>
+        <mkdir dir="jars/"/>
+        <javac destdir="classes/EndMediaCallTelcoService-event"
+            includes="org/telcomp/events/EndMediaCallTelcoServiceEvent.java" srcdir="src">
+            <classpath>
+                <path refid="slee"/>
+                <path refid="ExternalComponents"/>
+            </classpath>
+        </javac>
+        <eventjar classpath="classes/EndMediaCallTelcoService-event"
+            destfile="jars/EndMediaCallTelcoService-event.jar" eventjarxml="src/org/telcomp/events/EndMediaCallTelcoService-event-jar.xml"/>
+    </target>
+    <target name="clean-EndMediaCallTelcoService-event">
+        <delete file="jars/EndMediaCallTelcoService-event.jar"/>
+        <delete dir="classes/EndMediaCallTelcoService-event"/>
+    </target>
+    <target depends="init" name="build-Media-sbb">
+        <mkdir dir="classes/Media-sbb"/>
+        <mkdir dir="jars/"/>
+        <javac destdir="classes/Media-sbb"
+            includes="org/telcomp/sbb/MediaSbb.java,org/telcomp/sbb/MediaSbbLocalObject.java" srcdir="src">
+            <classpath>
+                <path refid="path-Media-sbb"/>
+                <path refid="ExternalComponents"/>
+                <path refid="slee"/>
+            </classpath>
+        </javac>
+        <sbbjar classpath="classes/Media-sbb"
+            destfile="jars/Media-sbb.jar" sbbjarxml="src/org/telcomp/sbb/Media-sbb-jar.xml"/>
+    </target>
+    <target name="clean-Media-sbb">
+        <delete file="jars/Media-sbb.jar"/>
+        <delete dir="classes/Media-sbb"/>
+    </target>
+    <target depends="init" name="build-TTS-sbb">
+        <mkdir dir="classes/TTS-sbb"/>
+        <mkdir dir="jars/"/>
+        <javac destdir="classes/TTS-sbb"
+            includes="org/telcomp/sbb/TTSSbb.java,org/telcomp/sbb/TTSSbbLocalObject.java" srcdir="src">
+            <classpath>
+                <path refid="ExternalComponents"/>
+                <path refid="slee"/>
+            </classpath>
+        </javac>
+        <sbbjar classpath="classes/TTS-sbb" destfile="jars/TTS-sbb.jar" sbbjarxml="src/org/telcomp/sbb/TTS-sbb-jar.xml"/>
+    </target>
+    <target name="clean-TTS-sbb">
+        <delete file="jars/TTS-sbb.jar"/>
+        <delete dir="classes/TTS-sbb"/>
+    </target>
+    <target depends="init" name="build-CallManager-sbb">
+        <mkdir dir="classes/CallManager-sbb"/>
+        <mkdir dir="jars/"/>
+        <javac destdir="classes/CallManager-sbb"
+            includes="org/telcomp/sbb/CallManagerSbb.java" srcdir="src">
+            <classpath>
+                <path refid="path-CallManager-sbb"/>
+                <path refid="ExternalComponents"/>
+                <path refid="slee"/>
+            </classpath>
+        </javac>
+        <sbbjar classpath="classes/CallManager-sbb"
+            destfile="jars/CallManager-sbb.jar" sbbjarxml="src/org/telcomp/sbb/CallManager-sbb-jar.xml"/>
+    </target>
+    <target name="clean-CallManager-sbb">
+        <delete file="jars/CallManager-sbb.jar"/>
+        <delete dir="classes/CallManager-sbb"/>
+    </target>
+    <target
+        depends="build-CallManager-sbb,build-EndMediaCallTelcoService-event,build-Media-sbb,build-TTS-sbb,build-StartMediaCallTelcoService-event" name="build-mediaCall-DU">
+        <mkdir dir="classes/mediaCall-DU"/>
+        <copy
+            file="src/org/telcomp/service/mediaCall-deployable-unit.xml" tofile="classes/mediaCall-DU/deployable-unit.xml"/>
+        <jar jarfile="jars/mediaCall-DU.jar">
+            <metainf dir="classes/mediaCall-DU" includes="deployable-unit.xml"/>
+            <fileset dir="" includes="jars/CallManager-sbb.jar"/>
+            <fileset dir="" includes="jars/EndMediaCallTelcoService-event.jar"/>
+            <fileset dir="" includes="jars/Media-sbb.jar"/>
+            <fileset dir="" includes="jars/TTS-sbb.jar"/>
+            <fileset dir="" includes="jars/StartMediaCallTelcoService-event.jar"/>
+            <fileset dir="." includes="src/org/telcomp/service/mediaCall-service.xml"/>
+        </jar>
+    </target>
+    <target name="clean-mediaCall-DU">
+        <delete file="jars/mediaCall-DU.jar"/>
+        <delete dir="classes/mediaCall-DU"/>
+    </target>
+</project>

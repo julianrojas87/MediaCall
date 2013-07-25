@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE deployable-unit PUBLIC "-//Sun Microsystems, Inc.//DTD JAIN SLEE Deployable Unit 1.1//EN" "http://java.sun.com/dtd/slee-deployable-unit_1_1.dtd">
+<deployable-unit>
+	<jar>jars/mgcp-ratype-2.7.0.FINAL.jar</jar>
+	<jar>jars/mgcp-ra-2.7.0.FINAL.jar</jar>
+	<jar>jars/mgcp-library-2.7.0.FINAL.jar</jar>
+	<jar>jars/mgcp-events-2.7.0.FINAL.jar</jar>
+	<jar>jars/mgcp-impl-2.0.1.GA.jar</jar>
+	<jar>jars/jain-mgcp-ri-1.0.jar</jar>
+</deployable-unit>
