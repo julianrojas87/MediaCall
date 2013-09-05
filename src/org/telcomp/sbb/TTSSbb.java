@@ -1,11 +1,13 @@
 package org.telcomp.sbb;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Properties;
 
 import javax.slee.ActivityContextInterface;
 import javax.slee.RolledBackContext;
@@ -20,12 +22,19 @@ public abstract class TTSSbb implements javax.slee.Sbb {
 	private static final String mpg123Command = "mpg123 -m -w ";
 	private static final String proxy = "proxy.unicauca.edu.co";
 	private static final String proxyPort = "3128";
-	private static boolean proxyNeeded = true;
+	private static boolean proxyNeeded;
 	private static final int timeout = 5500;
 	private static final String telcompSignature = ". This was a message provided by telcomp services." +
 				" Telcomp development team wish you a nice day. Bye bye!";
 	
 	public String createAudioFile(String text){
+		Properties prop = new Properties();
+        try {
+			prop.load(new FileInputStream("/usr/local/Mobicents-JSLEE/telcoServices.properties"));
+			proxyNeeded = Boolean.parseBoolean(prop.getProperty("MEDIACALL_PROXY_NEEDED"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		//Setting System proxy
 		this.proxyConf(proxyNeeded);
 		//Creating Text to convert
@@ -75,6 +84,7 @@ public abstract class TTSSbb implements javax.slee.Sbb {
 			p.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
+			
 		}
 	}
 	

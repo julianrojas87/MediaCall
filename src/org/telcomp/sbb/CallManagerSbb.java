@@ -1,5 +1,7 @@
 package org.telcomp.sbb;
 
+import gov.nist.javax.sip.clientauthutils.UserCredentials;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,12 +10,14 @@ import java.util.List;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.sip.ClientTransaction;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
+import javax.sip.header.AuthorizationHeader;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
@@ -21,8 +25,10 @@ import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ProxyAuthenticateHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.header.ViaHeader;
+import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -35,6 +41,8 @@ import net.java.slee.resource.sip.DialogActivity;
 import net.java.slee.resource.sip.SipActivityContextInterfaceFactory;
 import net.java.slee.resource.sip.SleeSipProvider;
 
+import org.telcomp.auth.AccountManagerImpl;
+import org.telcomp.auth.MessageDigestAlgorithm;
 import org.telcomp.events.EndMediaCallTelcoServiceEvent;
 import org.telcomp.events.StartMediaCallTelcoServiceEvent;
 
@@ -47,6 +55,9 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 	private AddressFactory addressFactory;
 	private HeaderFactory headerFactory;
 	private MessageFactory messageFactory;
+	private String uriSip;
+	private CallIdHeader callid;
+	private String requestUri;
 
 	public void onStartMediaCallTelcoServiceEvent(StartMediaCallTelcoServiceEvent event, ActivityContextInterface aci) {
 		this.setMainAci(aci);
@@ -59,7 +70,8 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 			e.printStackTrace();
 		}
 		
-		DialogActivity outgoingDialog = this.fireInviteRequest(event.getUriSip());
+		uriSip = event.getUriSip();
+		DialogActivity outgoingDialog = this.fireInviteRequest(event.getUriSip(), false, null);
 		ActivityContextInterface outgoingDialogAci = sipActivityContextInterfaceFactory.getActivityContextInterface(outgoingDialog);
 		outgoingDialogAci.attach(this.sbbContext.getSbbLocalObject());
 	}
@@ -70,11 +82,13 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 
 	public void on2xxResponse(ResponseEvent event, ActivityContextInterface aci) {
 		CSeqHeader Cseq = (CSeqHeader) event.getResponse().getHeader(CSeqHeader.NAME);
+		ToHeader to = (ToHeader) event.getResponse().getHeader(ToHeader.NAME);
 		//Creating and sending ACK for 200 OK from Invite request
 		DialogActivity out = (DialogActivity) aci.getActivity();
 
 		try {
 			Request ACK = out.createAck(Cseq.getSeqNumber());
+			ACK.setRequestURI(to.getAddress().getURI());
 			out.sendAck(ACK);
 			//Creating Media Connection
 			String remoteSdp = new String(event.getResponse().getRawContent());
@@ -95,12 +109,24 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 	}
 
 	public void on4xxResponse(ResponseEvent event, ActivityContextInterface aci) {
-		//User occupied
-		HashMap<String, Object> operationInputs = new HashMap<String, Object>();
-		operationInputs.put("commited", (String) "false");
-		EndMediaCallTelcoServiceEvent endEvent = new EndMediaCallTelcoServiceEvent(operationInputs);
-		this.fireEndMediaCallTelcoServiceEvent(endEvent, this.getMainAci(), null);
-		this.getMainAci().detach(this.sbbContext.getSbbLocalObject());
+		if(event.getResponse().getStatusCode() == Response.UNAUTHORIZED){
+			ClientTransaction ct = null;
+			WWWAuthenticateHeader authHeader = (WWWAuthenticateHeader) event.getResponse().getHeader(WWWAuthenticateHeader.NAME);
+			AuthorizationHeader newauth = this.getAuthorization(Request.INVITE, requestUri, "", authHeader, 
+					new AccountManagerImpl().getCredentials(ct, "String"));
+			System.out.println("New Authorization Header: "+ newauth.toString());
+			DialogActivity outgoingDialog = this.fireInviteRequest(uriSip, true, newauth);
+			ActivityContextInterface outgoingDialogAci = sipActivityContextInterfaceFactory.getActivityContextInterface(outgoingDialog);
+			outgoingDialogAci.attach(this.sbbContext.getSbbLocalObject());
+			aci.detach(this.sbbContext.getSbbLocalObject());
+		} else{
+			//User occupied
+			HashMap<String, Object> operationInputs = new HashMap<String, Object>();
+			operationInputs.put("commited", (String) "false");
+			EndMediaCallTelcoServiceEvent endEvent = new EndMediaCallTelcoServiceEvent(operationInputs);
+			this.fireEndMediaCallTelcoServiceEvent(endEvent, this.getMainAci(), null);
+			this.getMainAci().detach(this.sbbContext.getSbbLocalObject());
+		}
 	}
 
 	public void on6xxResponse(ResponseEvent event, ActivityContextInterface aci) {
@@ -136,7 +162,7 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 		}
 	}
 	
-	private DialogActivity fireInviteRequest(String toUri){
+	private DialogActivity fireInviteRequest(String toUri, boolean auth, AuthorizationHeader authHeader){
 		DialogActivity out = null;
 		Request inviteReq = null;
 		
@@ -150,6 +176,7 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 		
 		try{
 			addressFrom = addressFactory.createAddress("sip:TelcompServices@"+System.getProperty("jboss.bind.address")+":5060");
+			//addressFrom = addressFactory.createAddress("sip:8334901@190.5.200.20");
 			addressFrom.setDisplayName("TelcompServices");
 			FromHeader from = headerFactory.createFromHeader(addressFrom, "TelcompServices" + (Math.random() * 100000));
 			CSeqHeader cshead = headerFactory.createCSeqHeader(1L, Request.INVITE); 
@@ -163,17 +190,82 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 			vias = new ArrayList<ViaHeader>(1);
 			vias.add(sipFactoryProvider.getLocalVia("UDP", "z9hC4GbK095871331.0"));
 			to = headerFactory.createToHeader(addressTo, null);			 
-			callId = sipFactoryProvider.getNewCallId();
+			if (auth) {
+				callId = callid;
+				cshead.setSeqNumber(2L);
+			} else {
+				callId = sipFactoryProvider.getNewCallId();
+				callid = callId;
+			}
 			requestURI = (SipURI)to.getAddress().getURI();
 			inviteReq = messageFactory.createRequest(requestURI, Request.INVITE, callId, cshead, from, to, vias, maxhead);
 			inviteReq.addHeader(contact);
 			inviteReq = this.setSDP(inviteReq);
+			requestUri = inviteReq.getRequestURI().toString();
+			if (auth) {
+				inviteReq.addHeader(authHeader);
+			}
 			out = sipFactoryProvider.getNewDialog(addressFrom, addressTo);
 			out.sendRequest(inviteReq);
 		} catch(Exception e){
 			e.printStackTrace();
 		}
 		return out;
+	}
+	
+	private AuthorizationHeader getAuthorization(String method, String uri, String requestBody, 
+			WWWAuthenticateHeader authHeader, UserCredentials userCredentials) {
+		String response = null;
+
+		// JvB: authHeader.getQop() is a quoted _list_ of qop values
+		// (e.g. "auth,auth-int") Client is supposed to pick one
+		String qopList = authHeader.getQop();
+		String qop = (qopList != null) ? "auth" : null;
+		String nc_value = "00000001";
+		String cnonce = "xyz";
+
+		response = MessageDigestAlgorithm.calculateResponse(
+				authHeader.getAlgorithm(), userCredentials.getUserName(),
+				authHeader.getRealm(), userCredentials.getPassword(),
+				authHeader.getNonce(), nc_value, cnonce, method, uri,
+				requestBody, qop);
+
+		AuthorizationHeader authorization = null;
+		try {
+			if (authHeader instanceof ProxyAuthenticateHeader) {
+				authorization = headerFactory.createProxyAuthorizationHeader(authHeader.getScheme());
+			} else {
+				authorization = headerFactory.createAuthorizationHeader(authHeader.getScheme());
+			}
+
+			authorization.setUsername(userCredentials.getUserName());
+			authorization.setRealm(authHeader.getRealm());
+			authorization.setNonce(authHeader.getNonce());
+			authorization.setParameter("uri", uri);
+			authorization.setResponse(response);
+			if (authHeader.getAlgorithm() != null) {
+				authorization.setAlgorithm(authHeader.getAlgorithm());
+			}
+
+			if (authHeader.getOpaque() != null) {
+				authorization.setOpaque(authHeader.getOpaque());
+			}
+
+			// jvb added
+			if (qop != null) {
+				authorization.setQop(qop);
+				authorization.setCNonce(cnonce);
+				authorization.setNonceCount(Integer.parseInt(nc_value));
+			}
+
+			authorization.setResponse(response);
+
+		} catch (ParseException ex) {
+			throw new RuntimeException(
+					"Failed to create an authorization header!");
+		}
+
+		return authorization;
 	}
 	
 	// Get User name from URI

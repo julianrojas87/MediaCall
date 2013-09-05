@@ -149,8 +149,11 @@
                 <path refid="slee"/>
             </classpath>
         </javac>
-        <sbbjar classpath="classes/CallManager-sbb"
-            destfile="jars/CallManager-sbb.jar" sbbjarxml="src/org/telcomp/sbb/CallManager-sbb-jar.xml"/>
+        <copy file="src/org/telcomp/sbb/CallManager-sbb-jar.xml" tofile="classes/CallManager-sbb/sbb-jar.xml"/>
+        <jar basedir="classes/CallManager-sbb"
+            destfile="jars/CallManager-sbb.jar" includes="org/telcomp/sbb/*.class,org/telcomp/auth/*.class">
+            <metainf dir="classes/CallManager-sbb" includes="sbb-jar.xml"/>
+        </jar>
     </target>
     <target name="clean-CallManager-sbb">
         <delete file="jars/CallManager-sbb.jar"/>
