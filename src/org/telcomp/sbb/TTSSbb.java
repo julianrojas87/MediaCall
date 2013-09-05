@@ -31,7 +31,7 @@ public abstract class TTSSbb implements javax.slee.Sbb {
 		Properties prop = new Properties();
         try {
 			prop.load(new FileInputStream("/usr/local/Mobicents-JSLEE/telcoServices.properties"));
-			proxyNeeded = Boolean.parseBoolean(prop.getProperty("MEDIACALL_PROXY_NEEDED"));
+			proxyNeeded = Boolean.parseBoolean(prop.getProperty("PROXY_NEEDED"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
