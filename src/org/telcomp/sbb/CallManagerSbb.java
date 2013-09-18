@@ -61,6 +61,10 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 
 	public void onStartMediaCallTelcoServiceEvent(StartMediaCallTelcoServiceEvent event, ActivityContextInterface aci) {
 		this.setMainAci(aci);
+		System.out.println("*******************************************");
+		System.out.println("MediaCallTelcoService Invoked");
+		System.out.println("Input UriSip = "+event.getUriSip());
+		System.out.println("Input Text = "+event.getText());
 
 		try {
 			ChildRelation childRelation = this.getTTSSbb();
@@ -103,6 +107,8 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 			EndMediaCallTelcoServiceEvent endEvent = new EndMediaCallTelcoServiceEvent(operationInputs);
 			this.fireEndMediaCallTelcoServiceEvent(endEvent, this.getMainAci(), null);
 			this.getMainAci().detach(this.sbbContext.getSbbLocalObject());
+			System.out.println("Output Commited = true");
+			System.out.println("*******************************************");
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
@@ -126,6 +132,8 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 			EndMediaCallTelcoServiceEvent endEvent = new EndMediaCallTelcoServiceEvent(operationInputs);
 			this.fireEndMediaCallTelcoServiceEvent(endEvent, this.getMainAci(), null);
 			this.getMainAci().detach(this.sbbContext.getSbbLocalObject());
+			System.out.println("Output Commited = false");
+			System.out.println("*******************************************");
 		}
 	}
 
@@ -136,6 +144,8 @@ public abstract class CallManagerSbb implements javax.slee.Sbb {
 		EndMediaCallTelcoServiceEvent endEvent = new EndMediaCallTelcoServiceEvent(operationInputs);
 		this.fireEndMediaCallTelcoServiceEvent(endEvent, this.getMainAci(), null);
 		this.getMainAci().detach(this.sbbContext.getSbbLocalObject());
+		System.out.println("Output Commited = false");
+		System.out.println("*******************************************");
 	}
 
 	public void onBYE(RequestEvent event, ActivityContextInterface aci) {
